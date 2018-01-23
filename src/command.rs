@@ -22,11 +22,11 @@ pub struct Command {
 }
 
 trait CreateCommand {
-    fn create(&self) -> Command;
+    fn create_command(&self) -> Command;
 }
 
 impl CreateCommand for String {
-    fn create(&self) -> Command {
+    fn create_command(&self) -> Command {
         Command {
             ctype: CommandType::Other,
             cval: self.clone(),
@@ -35,7 +35,7 @@ impl CreateCommand for String {
 }
 
 impl CreateCommand for i32 {
-    fn create(&self) -> Command {
+    fn create_command(&self) -> Command {
         let id = *self - 255;
         if id < 110 {
             return Command {
@@ -53,9 +53,9 @@ impl CreateCommand for i32 {
 pub fn key_parse(key: Option<WchResult>) -> Command {
     match key {
         Some(WchResult::Char(c)) => {
-            format!("{}", char::from_u32(c as u32).expect("Invalid char")).create()
+            format!("{}", char::from_u32(c as u32).expect("Invalid char")).create_command()
         }
-        Some(WchResult::KeyCode(val)) => val.create(),
-        None => "".to_owned().create(),
+        Some(WchResult::KeyCode(val)) => val.create_command(),
+        None => "".to_owned().create_command(),
     }
 }
