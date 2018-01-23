@@ -3,8 +3,12 @@ extern crate ncurses;
 mod view;
 mod mode;
 mod command;
+mod file;
+mod cursor;
 
 use ncurses::*;
+use mode::Mode;
+use cursor::Cursor;
 
 
 const KEY_CODE_TABLE: [&'static str; 110] = ["YES",
@@ -121,14 +125,20 @@ const KEY_CODE_TABLE: [&'static str; 110] = ["YES",
 
 fn main() {
     view::init_view();
+    let mut mode = Mode::Normal;
+    let mut cursor = Cursor::new(0, 0);
     /* Prompt for a character. */
     printw("Enter a character within 2 seconds: ");
 
     let mut command = command::key_parse(view::get_key());
     while command.cval.as_str() != "\x1b" {
+        if !command::normal_exec_command(&mut command, &mut cursor, &mut mode) {
+            break;
+        }
         printw(command.cval.as_str());
+        printw(format!(" {},{}\n", cursor.x, cursor.y).as_ref());
+        mv(cursor.y, cursor.x);
         command = command::key_parse(view::get_key());
-
     }
     getch();
     endwin();

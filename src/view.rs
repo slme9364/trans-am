@@ -1,6 +1,7 @@
 extern crate ncurses;
 
 use ncurses::*;
+use cursor::Cursor;
 
 
 pub fn init_view() {
@@ -24,4 +25,27 @@ pub fn init_view() {
 
 pub fn get_key() -> Option<WchResult> {
     wget_wch(stdscr())
+}
+
+pub fn get_window_size() -> (i32, i32) {
+    let mut y = 0;
+    let mut x = 0;
+    getmaxyx(stdscr(), &mut y, &mut x);
+    (y, x)
+}
+
+pub fn optimize_cursor(cursor: &mut Cursor, y: &i32, x: &i32) {
+    if cursor.x < 0 {
+        cursor.x = 0;
+    }
+    if cursor.x > *x {
+        cursor.x = 0;
+        cursor.y += 1;
+    }
+    if cursor.y < 0 {
+        cursor.y = 0;
+    }
+    if cursor.y > *y {
+        cursor.y = *y
+    }
 }

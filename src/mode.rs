@@ -1,4 +1,4 @@
-enum Mode {
+pub enum Mode {
     Insert,
     Normal,
 }
