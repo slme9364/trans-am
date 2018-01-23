@@ -21,3 +21,7 @@ pub fn init_view() {
     noecho();
 
 }
+
+pub fn get_key() -> Option<WchResult> {
+    wget_wch(stdscr())
+}

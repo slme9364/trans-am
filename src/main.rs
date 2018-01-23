@@ -4,59 +4,132 @@ mod view;
 mod mode;
 mod command;
 
-use std::char;
 use ncurses::*;
+
+
+const KEY_CODE_TABLE: [&'static str; 110] = ["YES",
+                                             "MIN",
+                                             "Break",
+                                             "Down",
+                                             "Up",
+                                             "Left",
+                                             "Right",
+                                             "Home",
+                                             "BackSpace",
+                                             "F0",
+                                             "F1",
+                                             "F2",
+                                             "F3",
+                                             "F4",
+                                             "F5",
+                                             "F6",
+                                             "F7",
+                                             "F8",
+                                             "F9",
+                                             "F10",
+                                             "F11",
+                                             "F12",
+                                             "F13",
+                                             "F14",
+                                             "F15",
+                                             "Dl",
+                                             "Il",
+                                             "Dc",
+                                             "Ic",
+                                             "Eic",
+                                             "Clear",
+                                             "EOS",
+                                             "EOL",
+                                             "SF",
+                                             "SR",
+                                             "NPage",
+                                             "PPage",
+                                             "STAB",
+                                             "CTAB",
+                                             "CATAB",
+                                             "Enter",
+                                             "SReset",
+                                             "Reset",
+                                             "Print",
+                                             "LL",
+                                             "A1",
+                                             "A3",
+                                             "B2",
+                                             "C1",
+                                             "C3",
+                                             "BTAB",
+                                             "BEG",
+                                             "Cancel",
+                                             "Close",
+                                             "Command",
+                                             "Copy",
+                                             "Create",
+                                             "End",
+                                             "Exit",
+                                             "Find",
+                                             "Help",
+                                             "Mark",
+                                             "Message",
+                                             "Move",
+                                             "Next",
+                                             "Open",
+                                             "Options",
+                                             "Previous",
+                                             "Redo",
+                                             "Reference",
+                                             "Refresh",
+                                             "Replace",
+                                             "Restart",
+                                             "Resume",
+                                             "Save",
+                                             "SBEG",
+                                             "SCancel",
+                                             "SCommand",
+                                             "SCopy",
+                                             "SCreate",
+                                             "SDc",
+                                             "SDl",
+                                             "Select",
+                                             "Send",
+                                             "SEOL",
+                                             "SExit",
+                                             "SFind",
+                                             "SHelp",
+                                             "SHome",
+                                             "SIc",
+                                             "SLeft",
+                                             "SMessage",
+                                             "SMove",
+                                             "SNext",
+                                             "SOptions",
+                                             "SPrevious",
+                                             "SPrint",
+                                             "SRedo",
+                                             "SReplace",
+                                             "SRight",
+                                             "SResume",
+                                             "SSave",
+                                             "SSuspend",
+                                             "SUndo",
+                                             "Suspend",
+                                             "Undo",
+                                             "Mouse",
+                                             "Resize",
+                                             "Event",
+                                             "MAX"];
+
 
 fn main() {
     view::init_view();
     /* Prompt for a character. */
     printw("Enter a character within 2 seconds: ");
 
-    /* Wait for input. */
-    let ch = wget_wch(stdscr());
-    match ch {
-        Some(WchResult::KeyCode(KEY_MOUSE)) => {
-            /* Enable attributes and output message. */
-            attron(A_BOLD() | A_BLINK());
-            printw("\nMouse");
-            attroff(A_BOLD() | A_BLINK());
-            printw(" pressed");
-        }
+    let mut command = command::key_parse(view::get_key());
+    while command.cval.as_str() != "\x1b" {
+        printw(command.cval.as_str());
+        command = command::key_parse(view::get_key());
 
-        Some(WchResult::KeyCode(KEY_UP)) => {
-            /* Enable attributes and output message. */
-            attron(A_BOLD() | A_BLINK());
-            printw("\nKeycode");
-            attroff(A_BOLD() | A_BLINK());
-            printw(" UP");
-        }
-
-        Some(WchResult::KeyCode(_)) => {
-            /* Enable attributes and output message. */
-            attron(A_BOLD() | A_BLINK());
-            printw("\nKeycode");
-            attroff(A_BOLD() | A_BLINK());
-            printw(" pressed");
-        }
-
-        Some(WchResult::Char(c)) => {
-            /* Enable attributes and output message. */
-            printw("\nKey pressed: ");
-            attron(A_BOLD() | A_BLINK());
-            printw(format!("{}\n", char::from_u32(c as u32).expect("Invalid char")).as_ref());
-            attroff(A_BOLD() | A_BLINK());
-        }
-
-        None => {
-            printw("\nYou didn't enter a character in time!");
-        }
     }
-
-    /* Refresh, showing the previous message. */
-    refresh();
-
-    /* Wait for one more character before exiting. Disable the input timeout. */
-    nocbreak();
     getch();
     endwin();
 }
