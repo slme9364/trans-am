@@ -7,7 +7,9 @@ use std::vec::Vec;
 pub fn open_file() -> Vec<String> {
     let args: Vec<String> = env::args().collect();
     if args.len() != 2 {
-        return Vec::new();
+        let mut rval: Vec<String> = Vec::new();
+        rval.push("".to_owned());
+        return rval;
     }
     let file_path = args[1].as_str();
     let text = match file_read(file_path) {

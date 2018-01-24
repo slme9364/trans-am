@@ -22,8 +22,12 @@ pub fn init_view(text: &Vec<String>) {
     noecho();
     scrollok(stdscr(), true);
 
-    for i in 0..getmaxy(stdscr()) - 1 {
-        addstr(text[i as usize].as_str());
+    let mut size = (getmaxy(stdscr()) - 1) as usize;
+    if text.len() < size {
+        size = text.len();
+    }
+    for i in 0..size {
+        addstr(text[i].as_str());
         addstr("\n");
     }
     mv(0, 0);
@@ -71,6 +75,9 @@ pub fn optimize_relative_cursor(rcursor: &mut Cursor,
             addstr("\n");
         }
         rcursor.y = *y;
+    }
+    if rcursor.y > *ay {
+        rcursor.y = *ay;
     }
 }
 
