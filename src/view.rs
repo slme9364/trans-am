@@ -47,14 +47,15 @@ pub fn get_window_size() -> (i32, i32) {
 pub fn optimize_relative_cursor(rcursor: &mut Cursor,
                                 acursor: &Cursor,
                                 text: &Vec<String>,
-                                was_first: &bool,
-                                y: &i32,
-                                x: &i32,
-                                ay: &i32) {
+                                was_first: &bool) {
+    let x = getmaxx(stdscr());
+    let y = getmaxy(stdscr());
+    let ay = (text.len() - 1) as i32;
+
     if rcursor.x < 0 {
         rcursor.x = 0;
     }
-    if rcursor.x > *x {
+    if rcursor.x > x {
         rcursor.x = 0;
         rcursor.y += 1;
     }
@@ -67,17 +68,17 @@ pub fn optimize_relative_cursor(rcursor: &mut Cursor,
             addstr(text[acursor.y as usize].as_str());
         }
     }
-    if rcursor.y > *y {
-        if acursor.y < *ay {
+    if rcursor.y > y {
+        if acursor.y < ay {
             scrl(1);
-            mv(*y, 0);
+            mv(y, 0);
             addstr(text[acursor.y as usize].as_str());
             addstr("\n");
         }
-        rcursor.y = *y;
+        rcursor.y = y;
     }
-    if rcursor.y > *ay {
-        rcursor.y = *ay;
+    if rcursor.y > ay {
+        rcursor.y = ay;
     }
 }
 

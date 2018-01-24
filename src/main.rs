@@ -132,17 +132,21 @@ fn main() {
 
 
     let mut command = command::key_parse(view::get_key());
-    while command.cval.as_str() != "\x1b" {
-        if !command::normal_exec_command(&mut command,
-                                         &mut relative_cursor,
-                                         &mut absolute_cursor,
-                                         &mut mode,
-                                         &text) {
-            break;
+    loop {
+        match mode {
+            Mode::Normal => {
+                if !command::normal_exec_command(&mut command,
+                                                 &mut relative_cursor,
+                                                 &mut absolute_cursor,
+                                                 &mut mode,
+                                                 &text) {
+                    break;
+                }
+            }
+            Mode::Insert => break,
         }
         mv(relative_cursor.y, relative_cursor.x);
         command = command::key_parse(view::get_key());
     }
-    getch();
     endwin();
 }

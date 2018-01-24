@@ -41,9 +41,17 @@ impl CreateCommand for i32 {
     fn create_command(&self) -> Command {
         let id = *self - 255;
         if id < 110 {
+            let key = KEY_CODE_TABLE[id as usize];
+            let types = match key {
+                "Up" => CommandType::Up,
+                "Down" => CommandType::Down,
+                "Left" | "BackSpace" => CommandType::Left,
+                "Right" => CommandType::Right,
+                _ => CommandType::KeyCode,
+            };
             return Command {
-                       ctype: CommandType::KeyCode,
-                       cval: KEY_CODE_TABLE[id as usize].to_owned(),
+                       ctype: types,
+                       cval: key.to_owned(),
                    };
         }
         Command {
@@ -86,41 +94,48 @@ pub fn normal_exec_command(_command: &mut Command,
         _ => (),
     }
 
+    match _command.ctype {
+        CommandType::Up | CommandType::Down | CommandType::Left | CommandType::Right => {
+            mv_cursor_scrl(_command, _relative_cursor, _absolute_cursor, text)
+        }
+        CommandType::Exit => return false,
+        _ => (),
+    }
+    true
+}
+
+fn mv_cursor_scrl(command: &Command,
+                  rcursor: &mut Cursor,
+                  acursor: &mut Cursor,
+                  text: &Vec<String>) {
     let windows_size = view::get_window_size();
     let max_y = windows_size.0;
     let max_x = windows_size.1;
     let mut was_first = false;
 
-    match _command.ctype {
+    match command.ctype {
         CommandType::Up => {
-            _relative_cursor.y -= 1;
-            if _absolute_cursor.y == 1 {
+            rcursor.y -= 1;
+            if acursor.y == 1 {
                 was_first = true;
             }
-            _absolute_cursor.y -= 1;
+            acursor.y -= 1;
         }
         CommandType::Down => {
-            _relative_cursor.y += 1;
-            _absolute_cursor.y += 1;
+            rcursor.y += 1;
+            acursor.y += 1;
         }
         CommandType::Left => {
-            _relative_cursor.x -= 1;
-            _absolute_cursor.x -= 1;
+            rcursor.x -= 1;
+            acursor.x -= 1;
         }
         CommandType::Right => {
-            _relative_cursor.x += 1;
-            _absolute_cursor.x += 1;
+            rcursor.x += 1;
+            acursor.x += 1;
         }
-        CommandType::Exit => return false,
         _ => (),
     }
-    view::optimize_absolute_cursor(_absolute_cursor, &((text.len() - 1) as i32), &max_x);
-    view::optimize_relative_cursor(_relative_cursor,
-                                   _absolute_cursor,
-                                   &text,
-                                   &was_first,
-                                   &max_y,
-                                   &max_x,
-                                   &((text.len() - 1) as i32));
-    true
+    view::optimize_absolute_cursor(acursor, &((text.len() - 1) as i32), &max_x);
+    view::optimize_relative_cursor(rcursor, acursor, &text, &was_first);
+
 }
