@@ -124,20 +124,23 @@ const KEY_CODE_TABLE: [&'static str; 110] = ["YES",
 
 
 fn main() {
-    view::init_view();
     let mut mode = Mode::Normal;
-    let mut cursor = Cursor::new(0, 0);
-    /* Prompt for a character. */
-    printw("Enter a character within 2 seconds: ");
+    let mut relative_cursor = Cursor::new(0, 0);
+    let mut absolute_cursor = Cursor::new(0, 0);
+    let mut text = file::open_file();
+    view::init_view(&text);
+
 
     let mut command = command::key_parse(view::get_key());
     while command.cval.as_str() != "\x1b" {
-        if !command::normal_exec_command(&mut command, &mut cursor, &mut mode) {
+        if !command::normal_exec_command(&mut command,
+                                         &mut relative_cursor,
+                                         &mut absolute_cursor,
+                                         &mut mode,
+                                         &text) {
             break;
         }
-        printw(command.cval.as_str());
-        printw(format!(" {},{}\n", cursor.x, cursor.y).as_ref());
-        mv(cursor.y, cursor.x);
+        mv(relative_cursor.y, relative_cursor.x);
         command = command::key_parse(view::get_key());
     }
     getch();
