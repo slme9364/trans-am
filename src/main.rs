@@ -143,7 +143,13 @@ fn main() {
                     break;
                 }
             }
-            Mode::Insert => break,
+            Mode::Insert => {
+                command::insert_exec_command(&mut command,
+                                             &mut relative_cursor,
+                                             &mut absolute_cursor,
+                                             &mut mode,
+                                             &mut text)
+            }
         }
         mv(relative_cursor.y, relative_cursor.x);
         command = command::key_parse(view::get_key());

@@ -71,7 +71,68 @@ pub fn key_parse(key: Option<WchResult>) -> Command {
     }
 }
 
-pub fn insert_exec_command(_command: &mut Command, _cursor: &mut Cursor, _mode: &mut Mode) {}
+fn insert_str(text: &mut Vec<String>, word: String, rcursor: &mut Cursor, acursor: &mut Cursor) {
+    let key = word.as_str();
+    let x = getmaxx(stdscr());
+    if key == "\n" {
+        text.insert(acursor.y as usize, "".to_owned());
+        addstr("\n");
+        acursor.y += 1;
+        rcursor.y += 1;
+        acursor.x = 0;
+        rcursor.x = 0;
+        view::optimize_absolute_cursor(acursor, &((text.len() - 1) as i32), &x);
+        view::optimize_relative_cursor(rcursor, acursor, &text, &false);
+
+    } else {
+        text[acursor.y as usize].insert_str((acursor.x) as usize, key);
+        //insstr(key);
+        addstr(key);
+        rcursor.x += 1;
+        acursor.x += 1;
+        view::optimize_absolute_cursor(acursor, &((text.len() - 1) as i32), &x);
+        view::optimize_relative_cursor(rcursor, acursor, &text, &false);
+
+    }
+}
+
+fn delete_str(text: &mut Vec<String>, rcursor: &mut Cursor, acursor: &mut Cursor) {
+    let x = getmaxx(stdscr());
+    if acursor.x > 0 {
+        text[acursor.y as usize].remove((acursor.x - 1) as usize);
+        rcursor.x -= 1;
+        acursor.x -= 1;
+        view::optimize_absolute_cursor(acursor, &((text.len() - 1) as i32), &x);
+        view::optimize_relative_cursor(rcursor, acursor, &text, &false);
+        mv(rcursor.y, rcursor.x);
+        delch();
+    }
+}
+
+pub fn insert_exec_command(_command: &mut Command,
+                           _rcursor: &mut Cursor,
+                           _acursor: &mut Cursor,
+                           _mode: &mut Mode,
+                           text: &mut Vec<String>) {
+    match _command.ctype {
+        CommandType::Char => {
+            if _command.cval.as_str() == "\x1b" {
+                *_mode = Mode::Normal;
+            } else {
+                insert_str(text, _command.cval.clone(), _rcursor, _acursor);
+            }
+        }
+        CommandType::Up | CommandType::Down | CommandType::Left | CommandType::Right => {
+            mv_cursor_scrl(_command, _rcursor, _acursor, text)
+        }
+        CommandType::KeyCode => {
+            if _command.cval.as_str() == "BackSpace" {
+                delete_str(text, _rcursor, _acursor);
+            }
+        }
+        _ => (),
+    }
+}
 
 pub fn normal_exec_command(_command: &mut Command,
                            _relative_cursor: &mut Cursor,

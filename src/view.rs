@@ -48,7 +48,7 @@ pub fn optimize_relative_cursor(rcursor: &mut Cursor,
                                 acursor: &Cursor,
                                 text: &Vec<String>,
                                 was_first: &bool) {
-    let x = getmaxx(stdscr());
+    let x = text[acursor.y as usize].len() as i32; // getmaxx(stdscr());
     let y = getmaxy(stdscr());
     let ay = (text.len() - 1) as i32;
 
@@ -57,7 +57,6 @@ pub fn optimize_relative_cursor(rcursor: &mut Cursor,
     }
     if rcursor.x > x {
         rcursor.x = 0;
-        rcursor.y += 1;
     }
 
     if rcursor.y < 0 {
