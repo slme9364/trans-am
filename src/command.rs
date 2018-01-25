@@ -85,15 +85,12 @@ fn insert_str(text: &mut Vec<String>, word: String, rcursor: &mut Cursor, acurso
         view::optimize_absolute_cursor(acursor, &((text.len() - 1) as i32), &x);
         view::optimize_relative_cursor(rcursor, acursor, &text, &false);
 
-    } else {
+    } else if key != "" {
         text[acursor.y as usize].insert_str((acursor.x) as usize, key);
         winsstr(stdscr(), key);
         addstr(key);
         rcursor.x += 1;
         acursor.x += 1;
-        view::optimize_absolute_cursor(acursor, &((text.len() - 1) as i32), &x);
-        view::optimize_relative_cursor(rcursor, acursor, &text, &false);
-
     }
 }
 
