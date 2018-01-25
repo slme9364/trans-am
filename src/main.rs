@@ -124,17 +124,19 @@ const KEY_CODE_TABLE: [&'static str; 110] = ["YES",
 
 
 fn main() {
+    // Initialize
     let mut mode = Mode::Normal;
     let mut relative_cursor = Cursor::new(0, 0);
     let mut absolute_cursor = Cursor::new(0, 0);
     let mut text = file::open_file();
     view::init_view(&text);
 
-
+    // Get key and parse and execute command
     let mut command = command::key_parse(view::get_key());
     loop {
         match mode {
             Mode::Normal => {
+                // When pushing Command is Exit Command, exit editor
                 if !command::normal_exec_command(&mut command,
                                                  &mut relative_cursor,
                                                  &mut absolute_cursor,

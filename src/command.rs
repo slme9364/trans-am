@@ -114,6 +114,7 @@ pub fn insert_exec_command(_command: &mut Command,
                            text: &mut Vec<String>) {
     match _command.ctype {
         CommandType::Char => {
+            // x1b means ESC key
             if _command.cval.as_str() == "\x1b" {
                 *_mode = Mode::Normal;
             } else {
@@ -173,7 +174,6 @@ fn mv_cursor_scrl(command: &Command,
                   acursor: &mut Cursor,
                   text: &Vec<String>) {
     let windows_size = view::get_window_size();
-    let max_y = windows_size.0;
     let max_x = windows_size.1;
     let mut was_first = false;
 

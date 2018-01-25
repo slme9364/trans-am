@@ -12,6 +12,7 @@ pub fn open_file() -> Vec<String> {
         return rval;
     }
     let file_path = args[1].as_str();
+
     let text = match file_read(file_path) {
         Some(data) => data,
         None => return Vec::new(),

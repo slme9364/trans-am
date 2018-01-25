@@ -20,8 +20,11 @@ pub fn init_view(text: &Vec<String>) {
     /* Allow for extended keyboard (like F1). */
     keypad(stdscr(), true);
     noecho();
+
+    // Scroll available
     scrollok(stdscr(), true);
 
+    // Initialize View
     let mut size = (getmaxy(stdscr()) - 1) as usize;
     if text.len() < size {
         size = text.len();
