@@ -45,7 +45,7 @@ impl CreateCommand for i32 {
             let types = match key {
                 "Up" => CommandType::Up,
                 "Down" => CommandType::Down,
-                "Left" | "BackSpace" => CommandType::Left,
+                "Left" => CommandType::Left,
                 "Right" => CommandType::Right,
                 _ => CommandType::KeyCode,
             };
@@ -74,6 +74,7 @@ pub fn key_parse(key: Option<WchResult>) -> Command {
 fn insert_str(text: &mut Vec<String>, word: String, rcursor: &mut Cursor, acursor: &mut Cursor) {
     let key = word.as_str();
     let x = getmaxx(stdscr());
+
     if key == "\n" {
         text.insert(acursor.y as usize, "".to_owned());
         winsertln(stdscr());
@@ -144,12 +145,17 @@ pub fn normal_exec_command(_command: &mut Command,
         CommandType::Char => {
             match _command.cval.as_str() {
                 "i" => *_mode = Mode::Insert,
-                "h" | "BackSpace" => _command.ctype = CommandType::Left,
+                "h" => _command.ctype = CommandType::Left,
                 "j" | "\n" => _command.ctype = CommandType::Down,
                 "k" => _command.ctype = CommandType::Up,
                 "l" | " " => _command.ctype = CommandType::Right,
                 "q" => _command.ctype = CommandType::Exit,
                 _ => (),
+            }
+        }
+        CommandType::KeyCode => {
+            if _command.cval.as_str() == "BackSpace" {
+                _command.ctype = CommandType::Left;
             }
         }
         _ => (),
