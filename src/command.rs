@@ -76,7 +76,7 @@ fn insert_str(text: &mut Vec<String>, word: String, rcursor: &mut Cursor, acurso
     let x = getmaxx(stdscr());
     if key == "\n" {
         text.insert(acursor.y as usize, "".to_owned());
-        addstr("\n");
+        winsertln(stdscr());
         acursor.y += 1;
         rcursor.y += 1;
         acursor.x = 0;
@@ -86,7 +86,7 @@ fn insert_str(text: &mut Vec<String>, word: String, rcursor: &mut Cursor, acurso
 
     } else {
         text[acursor.y as usize].insert_str((acursor.x) as usize, key);
-        //insstr(key);
+        winsstr(stdscr(), key);
         addstr(key);
         rcursor.x += 1;
         acursor.x += 1;
