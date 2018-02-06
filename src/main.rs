@@ -9,6 +9,7 @@ mod cursor;
 use ncurses::*;
 use mode::Mode;
 use cursor::Cursor;
+use view::View;
 
 
 const KEY_CODE_TABLE: [&'static str; 110] = ["YES",
@@ -125,35 +126,23 @@ const KEY_CODE_TABLE: [&'static str; 110] = ["YES",
 
 fn main() {
     // Initialize
-    let mut mode = Mode::Normal;
-    let mut relative_cursor = Cursor::new(0, 0);
-    let mut absolute_cursor = Cursor::new(0, 0);
+    let mut view = View::new();
     let mut text = file::open_file();
     view::init_view(&text);
 
     // Get key and parse and execute command
     let mut command = command::key_parse(view::get_key());
     loop {
-        match mode {
+        match view.mode {
             Mode::Normal => {
                 // When pushing Command is Exit Command, exit editor
-                if !command::normal_exec_command(&mut command,
-                                                 &mut relative_cursor,
-                                                 &mut absolute_cursor,
-                                                 &mut mode,
-                                                 &text) {
+                if !command::normal_exec_command(&mut command, &mut view, &text) {
                     break;
                 }
             }
-            Mode::Insert => {
-                command::insert_exec_command(&mut command,
-                                             &mut relative_cursor,
-                                             &mut absolute_cursor,
-                                             &mut mode,
-                                             &mut text)
-            }
+            Mode::Insert => command::insert_exec_command(&mut command, &mut view, &mut text),
         }
-        mv(relative_cursor.y, relative_cursor.x);
+        mv(view.rcursor.y, view.rcursor.x);
         command = command::key_parse(view::get_key());
     }
     endwin();

@@ -2,11 +2,16 @@ extern crate ncurses;
 
 use std::char;
 
+use std::fs::File;
+use std::path::Path;
+use std::io::prelude::*;
 use ncurses::*;
 use KEY_CODE_TABLE;
 use cursor::Cursor;
 use mode::Mode;
 use view;
+use view::View;
+use file;
 
 pub enum CommandType {
     Up,
@@ -71,22 +76,43 @@ pub fn key_parse(key: Option<WchResult>) -> Command {
     }
 }
 
+fn save(text: &Vec<String>, filename: &str) {
+    let path = Path::new(filename);
+    let mut file = match File::create(&path) {
+        Ok(file) => file,
+        Err(_) => return,
+    };
+    let mut sum_text = "".to_owned();
+    for data in text {
+        sum_text = sum_text.clone() + data.as_str();
+        sum_text = sum_text.clone() + "\n";
+    }
+    file.write_all(sum_text.as_bytes());
+}
+
 fn insert_str(text: &mut Vec<String>, word: String, rcursor: &mut Cursor, acursor: &mut Cursor) {
     let key = word.as_str();
     let x = getmaxx(stdscr());
 
     if key == "\n" {
-        text.insert(acursor.y as usize, "".to_owned());
-        winsertln(stdscr());
+        text.insert((acursor.y + 1) as usize, "".to_owned());
         acursor.y += 1;
         rcursor.y += 1;
         acursor.x = 0;
         rcursor.x = 0;
         view::optimize_absolute_cursor(acursor, &((text.len() - 1) as i32), &x);
         view::optimize_relative_cursor(rcursor, acursor, &text, &false);
+        mv(rcursor.y, rcursor.x);
+        winsertln(stdscr());
 
     } else if key != "" && key.len() == 1 {
-        text[acursor.y as usize].insert_str((acursor.x) as usize, key);
+        if text[acursor.y as usize].len() == 0 ||
+           text[acursor.y as usize].len() <= acursor.x as usize {
+            text[acursor.y as usize] = text[acursor.y as usize].clone() + key;
+            acursor.x = (text[acursor.y as usize].len() - 1) as i32;
+        } else {
+            text[acursor.y as usize].insert_str(acursor.x as usize, key);
+        }
         mv(rcursor.y, 0);
         addstr(text[acursor.y as usize].as_str());
         rcursor.x += 1;
@@ -107,47 +133,42 @@ fn delete_str(text: &mut Vec<String>, rcursor: &mut Cursor, acursor: &mut Cursor
     }
 }
 
-pub fn insert_exec_command(_command: &mut Command,
-                           _rcursor: &mut Cursor,
-                           _acursor: &mut Cursor,
-                           _mode: &mut Mode,
-                           text: &mut Vec<String>) {
+pub fn insert_exec_command(_command: &mut Command, view: &mut View, text: &mut Vec<String>) {
     match _command.ctype {
         CommandType::Char => {
             // x1b means ESC key
             if _command.cval.as_str() == "\x1b" {
-                *_mode = Mode::Normal;
+                view.mode = Mode::Normal;
             } else {
-                insert_str(text, _command.cval.clone(), _rcursor, _acursor);
+                insert_str(text,
+                           _command.cval.clone(),
+                           &mut view.rcursor,
+                           &mut view.acursor);
             }
         }
         CommandType::Up | CommandType::Down | CommandType::Left | CommandType::Right => {
-            mv_cursor_scrl(_command, _rcursor, _acursor, text)
+            mv_cursor_scrl(_command, &mut view.rcursor, &mut view.acursor, text)
         }
         CommandType::KeyCode => {
             if _command.cval.as_str() == "BackSpace" {
-                delete_str(text, _rcursor, _acursor);
+                delete_str(text, &mut view.rcursor, &mut view.acursor);
             }
         }
         _ => (),
     }
 }
 
-pub fn normal_exec_command(_command: &mut Command,
-                           _relative_cursor: &mut Cursor,
-                           _absolute_cursor: &mut Cursor,
-                           _mode: &mut Mode,
-                           text: &Vec<String>)
-                           -> bool {
+pub fn normal_exec_command(_command: &mut Command, view: &mut View, text: &Vec<String>) -> bool {
     match _command.ctype {
         CommandType::Char => {
             match _command.cval.as_str() {
-                "i" => *_mode = Mode::Insert,
+                "i" => view.mode = Mode::Insert,
                 "h" => _command.ctype = CommandType::Left,
                 "j" | "\n" => _command.ctype = CommandType::Down,
                 "k" => _command.ctype = CommandType::Up,
                 "l" | " " => _command.ctype = CommandType::Right,
                 "q" => _command.ctype = CommandType::Exit,
+                "s" => save(text, file::get_file_name().as_str()),
                 _ => (),
             }
         }
@@ -161,7 +182,7 @@ pub fn normal_exec_command(_command: &mut Command,
 
     match _command.ctype {
         CommandType::Up | CommandType::Down | CommandType::Left | CommandType::Right => {
-            mv_cursor_scrl(_command, _relative_cursor, _absolute_cursor, text)
+            mv_cursor_scrl(_command, &mut view.rcursor, &mut view.acursor, text)
         }
         CommandType::Exit => return false,
         _ => (),
@@ -191,14 +212,13 @@ fn mv_cursor_scrl(command: &Command,
         }
         CommandType::Left => {
             rcursor.x -= 1;
-            acursor.x -= 1;
         }
         CommandType::Right => {
             rcursor.x += 1;
-            acursor.x += 1;
         }
         _ => (),
     }
+    acursor.x = rcursor.y;
     view::optimize_absolute_cursor(acursor, &((text.len() - 1) as i32), &max_x);
     view::optimize_relative_cursor(rcursor, acursor, &text, &was_first);
 

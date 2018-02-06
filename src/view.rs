@@ -2,6 +2,23 @@ extern crate ncurses;
 
 use ncurses::*;
 use cursor::Cursor;
+use mode::Mode;
+
+pub struct View {
+    pub acursor: Cursor,
+    pub rcursor: Cursor,
+    pub mode: Mode,
+}
+
+impl View {
+    pub fn new() -> View {
+        View {
+            acursor: Cursor { x: 0, y: 0 },
+            rcursor: Cursor { x: 0, y: 0 },
+            mode: Mode::Normal,
+        }
+    }
+}
 
 
 pub fn init_view(text: &Vec<String>) {

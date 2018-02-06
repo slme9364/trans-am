@@ -4,18 +4,23 @@ use std::io::prelude::*;
 use std::env;
 use std::vec::Vec;
 
-pub fn open_file() -> Vec<String> {
+pub fn get_file_name() -> String {
     let args: Vec<String> = env::args().collect();
     if args.len() != 2 {
-        let mut rval: Vec<String> = Vec::new();
-        rval.push("".to_owned());
-        return rval;
+        return "cache".to_owned();
     }
-    let file_path = args[1].as_str();
+    args[1].clone()
+}
 
-    let text = match file_read(file_path) {
+pub fn open_file() -> Vec<String> {
+    let file_path = get_file_name();
+    let text = match file_read(file_path.as_str()) {
         Some(data) => data,
-        None => return Vec::new(),
+        None => {
+            let mut vec = Vec::new();
+            vec.push("".to_owned());
+            return vec;
+        }
     };
     let str_vec: Vec<&str> = text.as_str().split('\n').collect();
     let text_vec: Vec<String> = str_vec.iter().map(|&s| s.to_owned()).collect();
