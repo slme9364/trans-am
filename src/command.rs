@@ -212,13 +212,14 @@ fn mv_cursor_scrl(command: &Command,
         }
         CommandType::Left => {
             rcursor.x -= 1;
+            acursor.x -= 1;
         }
         CommandType::Right => {
             rcursor.x += 1;
+            acursor.x += 1;
         }
         _ => (),
     }
-    acursor.x = rcursor.y;
     view::optimize_absolute_cursor(acursor, &((text.len() - 1) as i32), &max_x);
     view::optimize_relative_cursor(rcursor, acursor, &text, &was_first);
 
