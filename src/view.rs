@@ -89,7 +89,6 @@ pub fn optimize_relative_cursor(rcursor: &mut Cursor,
     }
     if rcursor.y > y {
         if acursor.y < ay {
-            scrl(1);
             mv(y, 0);
             addstr(text[acursor.y as usize].as_str());
             addstr("\n");
