@@ -98,10 +98,10 @@ pub fn get_key(win: WINDOW) -> Option<WchResult> {
     wget_wch(win)
 }
 
-pub fn get_window_size() -> (i32, i32) {
+pub fn get_window_size(window: WINDOW) -> (i32, i32) {
     let mut y = 0;
     let mut x = 0;
-    getmaxyx(stdscr(), &mut y, &mut x);
+    getmaxyx(window, &mut y, &mut x);
     (y, x)
 }
 

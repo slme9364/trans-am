@@ -222,7 +222,7 @@ fn mv_cursor_scrl(command: &Command,
                   acursor: &mut Cursor,
                   text: &Vec<String>,
                   windows: &[WINDOW; 3]) {
-    let windows_size = view::get_window_size();
+    let windows_size = view::get_window_size(windows[MAIN_WINDOW]);
     let max_x = windows_size.1;
     let mut was_first = false;
 
