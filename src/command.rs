@@ -12,6 +12,7 @@ use mode::Mode;
 use view;
 use view::View;
 use file;
+use {MAIN_WINDOW, LINE_NO_WINDOW};
 
 pub enum CommandType {
     Up,
@@ -90,7 +91,11 @@ fn save(text: &Vec<String>, filename: &str) {
     file.write_all(sum_text.as_bytes());
 }
 
-fn insert_str(text: &mut Vec<String>, word: String, rcursor: &mut Cursor, acursor: &mut Cursor) {
+fn insert_str(text: &mut Vec<String>,
+              word: String,
+              rcursor: &mut Cursor,
+              acursor: &mut Cursor,
+              windows: &[WINDOW; 3]) {
     let key = word.as_str();
     let x = getmaxx(stdscr());
 
@@ -101,9 +106,14 @@ fn insert_str(text: &mut Vec<String>, word: String, rcursor: &mut Cursor, acurso
         acursor.x = 0;
         rcursor.x = 0;
         view::optimize_absolute_cursor(acursor, &((text.len() - 1) as i32), &x);
-        view::optimize_relative_cursor(rcursor, acursor, &text, &false);
-        mv(rcursor.y, rcursor.x);
-        winsertln(stdscr());
+        view::optimize_relative_cursor(rcursor,
+                                       acursor,
+                                       &text,
+                                       &windows[MAIN_WINDOW],
+                                       &windows[LINE_NO_WINDOW],
+                                       &false);
+        wmove(windows[MAIN_WINDOW], rcursor.y, rcursor.x);
+        winsertln(windows[MAIN_WINDOW]);
 
     } else if key != "" && key.len() == 1 {
         if text[acursor.y as usize].len() == 0 ||
@@ -113,23 +123,31 @@ fn insert_str(text: &mut Vec<String>, word: String, rcursor: &mut Cursor, acurso
         } else {
             text[acursor.y as usize].insert_str(acursor.x as usize, key);
         }
-        mv(rcursor.y, 0);
-        addstr(text[acursor.y as usize].as_str());
+        wmove(windows[MAIN_WINDOW], rcursor.y, 0);
+        waddstr(windows[MAIN_WINDOW], text[acursor.y as usize].as_str());
         rcursor.x += 1;
         acursor.x += 1;
     }
 }
 
-fn delete_str(text: &mut Vec<String>, rcursor: &mut Cursor, acursor: &mut Cursor) {
+fn delete_str(text: &mut Vec<String>,
+              rcursor: &mut Cursor,
+              acursor: &mut Cursor,
+              windows: &[WINDOW; 3]) {
     let x = getmaxx(stdscr());
     if acursor.x > 0 {
         text[acursor.y as usize].remove((acursor.x - 1) as usize);
         rcursor.x -= 1;
         acursor.x -= 1;
         view::optimize_absolute_cursor(acursor, &((text.len() - 1) as i32), &x);
-        view::optimize_relative_cursor(rcursor, acursor, &text, &false);
-        mv(rcursor.y, rcursor.x);
-        delch();
+        view::optimize_relative_cursor(rcursor,
+                                       acursor,
+                                       &text,
+                                       &windows[MAIN_WINDOW],
+                                       &windows[LINE_NO_WINDOW],
+                                       &false);
+        wmove(windows[MAIN_WINDOW], rcursor.y, rcursor.x);
+        wdelch(windows[MAIN_WINDOW]);
     }
 }
 
@@ -143,15 +161,20 @@ pub fn insert_exec_command(_command: &mut Command, view: &mut View, text: &mut V
                 insert_str(text,
                            _command.cval.clone(),
                            &mut view.rcursor,
-                           &mut view.acursor);
+                           &mut view.acursor,
+                           &view.windows);
             }
         }
         CommandType::Up | CommandType::Down | CommandType::Left | CommandType::Right => {
-            mv_cursor_scrl(_command, &mut view.rcursor, &mut view.acursor, text)
+            mv_cursor_scrl(_command,
+                           &mut view.rcursor,
+                           &mut view.acursor,
+                           text,
+                           &view.windows);
         }
         CommandType::KeyCode => {
             if _command.cval.as_str() == "BackSpace" {
-                delete_str(text, &mut view.rcursor, &mut view.acursor);
+                delete_str(text, &mut view.rcursor, &mut view.acursor, &view.windows);
             }
         }
         _ => (),
@@ -182,7 +205,11 @@ pub fn normal_exec_command(_command: &mut Command, view: &mut View, text: &Vec<S
 
     match _command.ctype {
         CommandType::Up | CommandType::Down | CommandType::Left | CommandType::Right => {
-            mv_cursor_scrl(_command, &mut view.rcursor, &mut view.acursor, text)
+            mv_cursor_scrl(_command,
+                           &mut view.rcursor,
+                           &mut view.acursor,
+                           text,
+                           &view.windows);
         }
         CommandType::Exit => return false,
         _ => (),
@@ -193,7 +220,8 @@ pub fn normal_exec_command(_command: &mut Command, view: &mut View, text: &Vec<S
 fn mv_cursor_scrl(command: &Command,
                   rcursor: &mut Cursor,
                   acursor: &mut Cursor,
-                  text: &Vec<String>) {
+                  text: &Vec<String>,
+                  windows: &[WINDOW; 3]) {
     let windows_size = view::get_window_size();
     let max_x = windows_size.1;
     let mut was_first = false;
@@ -221,6 +249,11 @@ fn mv_cursor_scrl(command: &Command,
         _ => (),
     }
     view::optimize_absolute_cursor(acursor, &((text.len() - 1) as i32), &max_x);
-    view::optimize_relative_cursor(rcursor, acursor, &text, &was_first);
+    view::optimize_relative_cursor(rcursor,
+                                   acursor,
+                                   &text,
+                                   &windows[MAIN_WINDOW],
+                                   &windows[LINE_NO_WINDOW],
+                                   &was_first);
 
 }

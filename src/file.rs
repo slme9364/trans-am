@@ -12,6 +12,11 @@ pub fn get_file_name() -> String {
     args[1].clone()
 }
 
+pub fn get_file_line_no() -> usize {
+    let text = open_file();
+    text.len()
+}
+
 pub fn open_file() -> Vec<String> {
     let file_path = get_file_name();
     let text = match file_read(file_path.as_str()) {

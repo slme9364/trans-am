@@ -11,7 +11,9 @@ use mode::Mode;
 use cursor::Cursor;
 use view::View;
 
-
+const LINE_NO_WINDOW: usize = 0;
+const INFO_WINDOW: usize = 1;
+const MAIN_WINDOW: usize = 2;
 const KEY_CODE_TABLE: [&'static str; 110] = ["YES",
                                              "MIN",
                                              "Break",
@@ -126,13 +128,15 @@ const KEY_CODE_TABLE: [&'static str; 110] = ["YES",
 
 fn main() {
     // Initialize
-    let mut view = View::new();
+    initscr();
     let mut text = file::open_file();
-    view::init_view(&text);
+    let mut view = View::new();
+    view::init_view(&text, &view.windows);
 
     // Get key and parse and execute command
-    let mut command = command::key_parse(view::get_key());
+    let mut command = command::key_parse(view::get_key(view.windows[MAIN_WINDOW]));
     loop {
+        view.status();
         match view.mode {
             Mode::Normal => {
                 // When pushing Command is Exit Command, exit editor
@@ -140,10 +144,12 @@ fn main() {
                     break;
                 }
             }
-            Mode::Insert => command::insert_exec_command(&mut command, &mut view, &mut text),
+            Mode::Insert => {
+                command::insert_exec_command(&mut command, &mut view, &mut text);
+            }
         }
-        mv(view.rcursor.y, view.rcursor.x);
-        command = command::key_parse(view::get_key());
+        wmove(view.windows[MAIN_WINDOW], view.rcursor.y, view.rcursor.x);
+        command = command::key_parse(view::get_key(view.windows[MAIN_WINDOW]));
     }
     endwin();
 }
