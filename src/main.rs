@@ -136,6 +136,7 @@ fn main() {
     // Get key and parse and execute command
     let mut command = command::key_parse(view::get_key(view.windows[MAIN_WINDOW]));
     loop {
+        // Print status in status window
         view.status();
         match view.mode {
             Mode::Normal => {
