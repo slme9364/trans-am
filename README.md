@@ -12,4 +12,4 @@ TRANS-AM
 ```
 
 ## See also
-[exia](https://github.com/slme9364/exia "exia") - I make editot not using ncurses.
+[exia](https://github.com/slme9364/exia "exia") - I make editot not using ncurses.(Private repo)
