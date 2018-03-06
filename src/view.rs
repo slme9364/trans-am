@@ -35,8 +35,7 @@ impl View {
 }
 
 fn create_window() -> [WINDOW; 3] {
-    let line_no = file::get_file_line_no();
-    let length = (format!("{}", line_no).len() + 1) as i32;
+    let length = 3 + 1;
     let divide_line = 1;
     let lineno_win = newwin(getmaxy(stdscr()) - divide_line, length, 0, 0);
     let info_win = newwin(divide_line,
@@ -79,7 +78,7 @@ pub fn init_view(text: &Vec<String>, windows: &[WINDOW; 3]) {
         size = text.len();
     }
 
-    let length = (format!("{}", file::get_file_line_no()).len() + 1) as i32;
+    let length = 3 + 1;
     for i in 0..size {
         waddstr(windows[LINE_NO_WINDOW],
                 &format!("{number:>length$} ",
